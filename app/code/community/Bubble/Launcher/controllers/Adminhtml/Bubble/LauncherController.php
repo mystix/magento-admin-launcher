@@ -44,4 +44,10 @@ class Bubble_Launcher_Adminhtml_Bubble_LauncherController extends Mage_Adminhtml
 
         $this->_redirect('adminhtml/process/list');
     }
+
+
+    protected function _isAllowed()
+    {
+        return true;
+    }
 }
