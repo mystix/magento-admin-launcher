@@ -12,43 +12,42 @@ class Bubble_Launcher_Model_Indexer_Config extends Bubble_Launcher_Model_Indexer
             if (isset($sectionData['@']) && isset($sectionData['@']['module'])) {
                 $module = $sectionData['@']['module'];
             }
-            $sectionLabel = (string) $sectionData['label'];
-            if ($module) {
+            if ($module && array_key_exists('label', $sectionData)) {
+                $sectionLabel = (string)$sectionData['label'];
                 $sectionLabel = Mage::helper($module)->__($sectionLabel);
-            }
-            foreach ($sectionData['groups'] as $group => $groupData) {
-                if (!$this->_isAllowed('system/config/' . $group)) {
-                    continue;
-                }
-                $groupLabel = (string) $groupData['label'];
-                if (empty($groupLabel)) {
-                    continue;
-                }
-                if ($module) {
-                    $groupLabel = Mage::helper($module)->__($groupLabel);
-                }
-                $fieldset   = $section . '_' . $group;
-                $title      = $groupLabel;
-                $text       = sprintf('%s > %s > %s', $menuLabel, $sectionLabel, $groupLabel);
-                $url        = $this->_getUrl('adminhtml/system_config/edit',
-                    array('section' => $section, 'fieldset' => $fieldset));
-                $data[] = $this->_prepareData($title, $text, $url);
-                if ($groupData['fields']) {
-                    foreach ($groupData['fields'] as $fieldData) {
-                        $fieldLabel = (string) $fieldData['label'];
-                        if (empty($fieldLabel)) {
-                            continue;
+
+                foreach ($sectionData['groups'] as $group => $groupData) {
+                    if (!$this->_isAllowed('system/config/' . $group) || !array_key_exists('label', $groupData)) {
+                        continue;
+                    }
+                    $groupLabel = (string)$groupData['label'];
+                    if ($module) {
+                        $groupLabel = Mage::helper($module)->__($groupLabel);
+                    }
+                    $fieldset = $section . '_' . $group;
+                    $title = $groupLabel;
+                    $text = sprintf('%s > %s > %s', $menuLabel, $sectionLabel, $groupLabel);
+                    $url = $this->_getUrl('adminhtml/system_config/edit',
+                        array('section' => $section, 'fieldset' => $fieldset)
+                    );
+                    $data[] = $this->_prepareData($title, $text, $url);
+                    if (array_key_exists('fields', $groupData)) {
+                        foreach ($groupData['fields'] as $fieldData) {
+                            if (!is_array($fieldData) || !array_key_exists('label', $fieldData)) {
+                                continue;
+                            }
+                            $fieldLabel = (string)$fieldData['label'];
+                            if ($module) {
+                                $fieldLabel = Mage::helper($module)->__($fieldLabel);
+                            }
+                            $title = sprintf('%s > %s > %s',
+                                $sectionLabel, $groupLabel, $fieldLabel);
+                            $text = sprintf('%s > %s > %s > %s',
+                                $menuLabel, $sectionLabel, $groupLabel, $fieldLabel);
+                            $url = $this->_getUrl('adminhtml/system_config/edit',
+                                array('section' => $section, 'fieldset' => $fieldset));
+                            $data[] = $this->_prepareData($title, $text, $url);
                         }
-                        if ($module) {
-                            $fieldLabel = Mage::helper($module)->__($fieldLabel);
-                        }
-                        $title  = sprintf('%s > %s > %s',
-                            $sectionLabel, $groupLabel, $fieldLabel);
-                        $text   = sprintf('%s > %s > %s > %s',
-                            $menuLabel, $sectionLabel, $groupLabel, $fieldLabel);
-                        $url    = $this->_getUrl('adminhtml/system_config/edit',
-                            array('section' => $section, 'fieldset' => $fieldset));
-                        $data[] = $this->_prepareData($title, $text, $url);
                     }
                 }
             }
